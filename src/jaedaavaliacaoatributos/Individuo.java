@@ -4,7 +4,7 @@ public class Individuo {
 
     //Propriedades da classe    
     private int[] cromossomos;
-    private int fitnessValor;
+    private double fitnessValor;
 
     //Método inicializador
     public Individuo(int tamanho) {
@@ -14,17 +14,17 @@ public class Individuo {
     }
 
     //Método inicializador
-    public Individuo(int[] cromossomos, int fitnessValor) {
+    public Individuo(int[] cromossomos, double fitnessValor) {
         this.cromossomos = cromossomos;
         this.fitnessValor = fitnessValor;
     }
 
     //Métodos Get´s e Set´s
-    public int getFitnessValue() {
+    public double getFitnessValue() {
         return fitnessValor;
     }
 
-    public void setFitnessValue(int fitnessValue) {
+    public void setFitnessValue(double fitnessValue) {
         this.fitnessValor = fitnessValue;
     }
 

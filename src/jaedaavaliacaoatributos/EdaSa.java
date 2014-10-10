@@ -1,10 +1,14 @@
 package jaedaavaliacaoatributos;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import weka.classifiers.Evaluation;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.meta.FilteredClassifier;
 import weka.core.Instances;
+import weka.filters.unsupervised.attribute.Remove;
 
 public final class EdaSa {
 
@@ -16,6 +20,7 @@ public final class EdaSa {
     //private static final String _arquivo = "C:\\ArffTeste\\vote.arff";
     private static final int _QUANTIDADE = 1000;
     private static final int _GERACOES = 100;
+    private static final int _NroFolds = 10;
     public static final prjageda.MersenneTwister _MT = new prjageda.MersenneTwister();
 
     static Individuo[] melhorPopulacao;
@@ -34,26 +39,20 @@ public final class EdaSa {
 
     }
 
-    public EdaSa(int nroCromossomos) {
+    public EdaSa(Instances dados) throws Exception {
         //1° Passo - Gerar a população Inicial - 50% de probabilidade para 0 ou 1
         //2° Passo - Calcular o Fitness
         //3° Passo - Pegar os 50% Melhores indivíduos
         //4° Passo - Calcular os % de cada posição do Cromossomo
-        GerarPopulacaoInicial(nroCromossomos);
+        GerarPopulacaoInicial(dados);
 
     }
 
-    public enum Algoritmos {
-
-        //Definição dos Algoritmos
-        NaiveBayes, KNN;
-
-    }
-
-    public void GerarPopulacaoInicial(int qtdCromossomos) {
+    public void GerarPopulacaoInicial(Instances dados) throws Exception {
         try {
             //Declaração Variáveis e Objetos
             m_populacao = new Individuo[_QUANTIDADE];
+            int qtdCromossomos = dados.numAttributes() - 1;
 
             //Inicializar a população (pelo tamanho definido)
             for (int i = 0; i < _QUANTIDADE; i++) {
@@ -66,7 +65,7 @@ public final class EdaSa {
             }
 
             //Cálculo do Fitness(Quantidade de 1´s encontrados X Cromossomo)
-            CalculoFitness();
+            CalculaFitness(m_populacao, qtdCromossomos, dados);
 
             //Pegar os 50% melhores indivíduos da população
             melhorPopulacao = findBestPopulation();
@@ -86,7 +85,7 @@ public final class EdaSa {
                 }
 
                 //Resultado da Probabilidade do cromossomo da posição "j"
-                probabilidades[j] = percentual == 0 ? 0 : percentual / melhorPopulacao.length;               
+                probabilidades[j] = percentual == 0 ? 0 : percentual / melhorPopulacao.length;
 
             }
 
@@ -97,12 +96,54 @@ public final class EdaSa {
 
     }
 
-    public void CalculoFitness() {
+    public void CalculaFitness(Individuo[] Individuos, int nroAtribs, Instances dados) throws Exception {
         //Declaração Variáveis e Objetos
-        for (int i = 0; i < _QUANTIDADE; i++) {
-            m_populacao[i].avaliacao();
+        try {
+            //Percorrer todos os indivíduos
+            for (Individuo Individuo : Individuos) {
+                //Declaração variáveis e atributos
+                Remove rm = new Remove();
+                String regs = "";
 
+                //Percorrer TODOS os atributos do individuo
+                for (int iatr = 1; iatr < nroAtribs - 1; iatr++) {
+                    //Se for igual a 1 Seleciona o Atributo
+                    if (Individuo.getCromossomo(iatr) == 1) {
+                        //Concatenação - Indiv começam em 1
+                        regs += String.valueOf(iatr + 1).concat(",");
+
+                    }
+
+                }
+
+                //Definição do Classificador
+                NaiveBayes nb = new NaiveBayes();
+
+                //Definição dos atributos
+                rm.setOptions(new String[]{"-R", regs.substring(0, regs.length() - 1)});
+
+                //Declaração do Classificador em cima do filtro estabelecido
+                FilteredClassifier fc = new FilteredClassifier();
+                Evaluation eval = new Evaluation(dados);
+
+                //Filtrar os registros
+                fc.setFilter(rm);
+
+                //Setar o classificador
+                fc.setClassifier(nb);
+
+                //Calcular a Taxa de Erro
+                eval.crossValidateModel(fc, dados, _NroFolds, new Random(1));
+
+                //Atualizar o valor de Fitness do indivíduo
+                Individuo.setFitnessValue(eval.errorRate());
+                
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
+
 
     }
 
@@ -143,11 +184,8 @@ public final class EdaSa {
     // </editor-fold>
 
     public static void main(String[] args) throws Exception {
-        //Leitura do Arquivo Arrf
-        Instances dados = new Processamento(_arquivo).lerArquivoDados();
-
         //Declaração Variáveis e 
-        EdaSa edasa = new EdaSa(dados.numAttributes() - 1);
+        EdaSa edasa = new EdaSa(new Processamento(_arquivo).lerArquivoDados());
 
     }
 
