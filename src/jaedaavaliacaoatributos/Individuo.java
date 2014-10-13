@@ -1,8 +1,9 @@
 package jaedaavaliacaoatributos;
 
-public class Individuo {
+public class Individuo implements Comparable<Individuo> {
 
     //Propriedades da classe    
+
     private int[] cromossomos;
     private double fitnessValor;
 
@@ -55,6 +56,17 @@ public class Individuo {
 
     }
 
+    //Gerar os cromossomos randômicamente (0´s ou 1´s) - Apartir do Vetor de probabilidades
+    public void CromossomosRandomicos(double[] probabilidades) {
+        //Percorrer o tamanho do Vetor
+        for (int iPos = 0; iPos < this.cromossomos.length; iPos++) {
+            //Setar Randomicamente o % de probabilidade
+            this.setCromossomo(iPos, EdaSa._MT.nextBoolean(probabilidades[iPos]) ? 1 : 0);
+
+        }
+
+    }
+
     public void avaliacao() {
         //Declaração Variáveis e Objetos
         int qtdOcorrencias = 0;
@@ -69,5 +81,13 @@ public class Individuo {
         this.setFitnessValue(qtdOcorrencias);
 
     }
+
+    //<editor-fold defaultstate="collapsed" desc="3° Definição Métodos de Ordenação">
+    @Override
+    public int compareTo(Individuo o) {
+        return this.fitnessValor == o.getFitnessValue() ? 0 : this.fitnessValor > o.getFitnessValue() ? 1 : -1;
+
+    }
+    //</editor-fold>
 
 }
