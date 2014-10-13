@@ -25,20 +25,44 @@ public final class EdaSa {
 
     static Individuo[] melhorPopulacao;
     static Individuo[] m_populacao;
-    static double[] probabilidades = new double[_QUANTIDADE /2];
+    static double[] probabilidades;
     // </editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="2° Definição dos Métodos de Get´s e Set´s">
-    public Individuo[] getPopulation() {
-        return this.m_populacao;
-    }
-    // </editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="3° Definição do Método Inicializador da Classe e Demais Métodos">
+    //<editor-fold defaultstate="collapsed" desc="2° Definição do Método Inicializador da Classe e Demais Métodos">
     public EdaSa() {
 
     }
 
+    public static void main(String[] args) throws Exception {
+        //Declaração Variáveis e Objetos
+        Instances dados = new Instances(new Processamento(_arquivo).lerArquivoDados());
+        int nroGeracoes = 0;
+
+        //Geração da População Inicial
+        GerarPopulacaoInicial(dados);
+
+        //Enquanto puder processar
+        while (nroGeracoes < _GERACOES) {
+            //Gerar População
+            GerarPopulacao(dados);
+
+            //Atualizar a posição
+            nroGeracoes += 1;
+
+        }
+
+    }
+    // </editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="3° Funcionalidades Pertinentes aos métodos de processamento">       
+    // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Geração da População Inicial
+    // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // 1° Definir a Quantidade de Atributos de Cada indivíduo 
+    // 2° Efetuar a Criação de Indvíduos com probabilidade de 50% p* 0´s ou 1´s 
+    // 3° Calcular o fitness do indivíduo apartir de um classificador 
+    // 4° Selecionar 50% dos mellhores indivíduos(Menor Erro) e calcular o vetor das probabilidades
+    // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public static void GerarPopulacaoInicial(Instances dados) throws Exception {
         try {
             //Declaração Variáveis e Objetos
@@ -61,25 +85,8 @@ public final class EdaSa {
             //Pegar os 50% melhores indivíduos da população
             melhorPopulacao = findBestPopulation(qtdCromossomos);
 
-            //Calcular o Vetor de Probabilidades
-            double percentual;
-
-            //Percorrer a quantidade de registros existentes
-            for (int j = 0; j < qtdCromossomos; j++) {
-                //Inicializar a variável
-                percentual = 0;
-
-                //Percorre os cromossomos existentes na posição "j" e totaliza a valor(1 - Válido / 0 - Inválido)
-                for (Individuo individuo : melhorPopulacao) {
-                    //Totalizar o Indivíduo
-                    percentual += individuo.getCromossomo(j);
-
-                }
-
-                //Resultado da Probabilidade do cromossomo da posição "j"
-                probabilidades[j] = percentual == 0 ? 0 : percentual / melhorPopulacao.length;
-
-            }
+            //Calcular a probabilidade de cada posição
+            CalcularVetorProbabilidades(qtdCromossomos);
 
         } catch (Exception e) {
             throw e;
@@ -88,6 +95,7 @@ public final class EdaSa {
 
     }
 
+    //Calcular o Fitness da População (Utilizando Classificador definido)
     public static void CalcularFitness(Individuo[] Individuos, int nroAtribs, Instances dados) throws Exception {
         try {
             //Declaração variáveis e atributos
@@ -141,6 +149,7 @@ public final class EdaSa {
 
     }
 
+    ///Encontrar os 50% melhores indivíduos da população
     public static Individuo[] findBestPopulation(int nroCromossomos) {
         //Declaração Variáveis e Objetos
         Individuo[] bestPopulation = new Individuo[_QUANTIDADE / 2];
@@ -171,31 +180,8 @@ public final class EdaSa {
         return bestPopulation;
 
     }
-    // </editor-fold>
 
-    public static void main(String[] args) throws Exception {
-        //Declaração Variáveis e Objetos
-        Instances dados = new Instances(new Processamento(_arquivo).lerArquivoDados());
-
-        //1° Passo - Gerar a população Inicial - 50% de probabilidade para 0 ou 1
-        //2° Passo - Calcular o Fitness
-        //3° Passo - Pegar os 50% Melhores indivíduos
-        //4° Passo - Calcular os % de cada posição do Cromossomo
-        GerarPopulacaoInicial(dados);
-        int nroGeracoes = 0;
-
-        //Enquanto puder processar
-        while (nroGeracoes < _QUANTIDADE) {
-            //Gerar População
-            GerarPopulacao(dados);
-
-            //Atualizar a posição
-            nroGeracoes += 1;
-
-        }
-
-    }
-
+    //Geração das Populações após a População Inicial
     private static void GerarPopulacao(Instances dados) {
         try {
             //Declaração Variáveis e Objetos
@@ -218,25 +204,8 @@ public final class EdaSa {
             //Pegar os 50% melhores indivíduos da população
             melhorPopulacao = findBestPopulation(qtdCromossomos);
 
-            //Calcular o Vetor de Probabilidades
-            double percentual;
-
-            //Percorrer a quantidade de cromossomos existentes
-            for (int j = 0; j < qtdCromossomos; j++) {
-                //Inicializar a variável
-                percentual = 0;
-
-                //Percorre os cromossomos existentes na posição "j" e totaliza a valor(1 - Válido / 0 - Inválido)
-                for (Individuo individuo : melhorPopulacao) {
-                    //Totalizar o Indivíduo
-                    percentual += individuo.getCromossomo(j);
-
-                }
-
-                //Resultado da Probabilidade do cromossomo da posição "j"
-                probabilidades[j] = percentual == 0 ? 0 : percentual / melhorPopulacao.length;
-
-            }
+            //Recalcular o vetor de probabilidades
+            CalcularVetorProbabilidades(qtdCromossomos);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -244,5 +213,29 @@ public final class EdaSa {
         }
 
     }
-    
+
+    private static void CalcularVetorProbabilidades(int qtdCromossomos) {
+        //Inicializar o vetor de probabilidade
+        probabilidades = new double[qtdCromossomos];        
+
+        //Percorrer a quantidade de registros existentes
+        for (int j = 0; j < qtdCromossomos; j++) {
+            //Declaração e inicialização da variável
+            double percentual = 0;
+
+            //Percorre os cromossomos existentes na posição "j" e totaliza a valor(1 - Válido / 0 - Inválido)
+            for (Individuo individuo : melhorPopulacao) {
+                //Totalizar o Indivíduo
+                percentual += individuo.getCromossomo(j);
+
+            }
+
+            //Resultado da Probabilidade do cromossomo da posição "j"
+            probabilidades[j] = percentual == 0 ? 0 : percentual / melhorPopulacao.length;
+
+        }
+
+    }
+    // </editor-fold>
+
 }
