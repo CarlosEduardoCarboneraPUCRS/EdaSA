@@ -62,7 +62,8 @@ public final class EdaSa {
     // 1° Definir a Quantidade de Atributos de Cada indivíduo 
     // 2° Efetuar a Criação de Indvíduos com probabilidade de 50% p* 0´s ou 1´s 
     // 3° Calcular o fitness do indivíduo apartir de um classificador 
-    // 4° Selecionar 50% dos mellhores indivíduos(Menor Erro) e calcular o vetor das probabilidades
+    // 4° Selecionar 50% dos mellhores indivíduos(Menor Erro)
+    // 5° Calcular o vetor das probabilidades E imprimir os valores       
     // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public static void GerarPopulacaoInicial(Instances dados, int geracao) throws Exception {
         try {
@@ -121,7 +122,7 @@ public final class EdaSa {
 
                 //Definição do Classificador
                 NaiveBayes nb = new NaiveBayes();
-
+                
                 //Definição dos atributos - { Remover o último "," }
                 rm.setOptions(new String[]{"-R", regs.substring(0, regs.length() - 1)});
 
@@ -186,8 +187,8 @@ public final class EdaSa {
     private static void GerarPopulacao(Instances dados, int geracao) {
         try {
             //Declaração Variáveis e Objetos
-            m_populacao = new Individuo[_QUANTIDADE];
             int qtdCromossomos = dados.numAttributes() - 1;
+            m_populacao = new Individuo[_QUANTIDADE];
 
             //Inicializar a população (pelo tamanho definido)
             for (int i = 0; i < _QUANTIDADE; i++) {
@@ -199,7 +200,7 @@ public final class EdaSa {
                 
             }
 
-            //Cálculo do Fitness(Quantidade de 1´s encontrados X Cromossomo)
+            //Cálcular Fitness(Quantidade de 1´s encontrados X Cromossomo)
             CalcularFitness(m_populacao, qtdCromossomos, dados);
 
             //Pegar os 50% melhores indivíduos da população
@@ -256,7 +257,6 @@ public final class EdaSa {
         System.out.println("Geração[" + geracao + "] = " + sProbabilidades.substring(0, sProbabilidades.length() - 1));
         
     }
-
     // </editor-fold>
 
 }
