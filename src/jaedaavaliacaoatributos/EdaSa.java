@@ -147,11 +147,11 @@ public final class EdaSa {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             
-        }
+        }   
         
     }
 
-    ///Encontrar os 50% melhores indivíduos da população
+    //Encontrar os 50% melhores indivíduos da população
     public static Individuo[] findBestPopulation(int nroCromossomos) {
         //Declaração Variáveis e Objetos
         Individuo[] bestPopulation = new Individuo[_QUANTIDADE / 2];
